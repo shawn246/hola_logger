@@ -4,9 +4,6 @@ A simple log funciton implementation with one header file
 - Use only << to logging
 - Support for limiting the size of sigle log file
 
-# TODO
-- limitation on the number of log files
-
 # Usage
 ```c++
 #include "hola_logger.h"
