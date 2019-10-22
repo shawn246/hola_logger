@@ -12,12 +12,18 @@
 #include <fstream>
 #include <iostream>
 #include <deque>
+#if defined(WIN32) || defined(_WIN32)
 #include <io.h>
+#else
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 
 #define DEFAULT_MAX_KB          1024 * 1024
 #define MAX_LOG_BUFFER          100000
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32)
 #define PATH_SEP_CODE          '\\'
 #else
 #define PATH_SEP_CODE          '/'
@@ -205,7 +211,6 @@ private:
     virtual HolaLogger & operator<<(const std::string &log) {
         if (!_exitFlag) {
             std::lock_guard<std::mutex> lock(_mutex);
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
             if (_logPtrCur->size() >= MAX_LOG_BUFFER) {
                 _cond.notify_one();
             } else {
@@ -216,6 +221,7 @@ private:
     }
 
     void listLog() {
+#if defined(WIN32) || defined(_WIN32)
         long hFile = 0;
         struct _finddata_t fileInfo;
         if ((hFile = _findfirst((_logPath + _logName + "*").c_str(), &fileInfo)) != -1) {
@@ -226,13 +232,31 @@ private:
             } while (_findnext(hFile, &fileInfo) == 0);
             _findclose(hFile);
         }
+#else
+        if (_logPath.empty()) {
+            _logPath = "./";
+        }
+
+        DIR *dir;
+        if ((dir = opendir(_logPath.c_str()))) {
+            struct dirent *info = nullptr;
+            while ((info = readdir(dir))) {
+                struct stat fstat;
+                if (std::string(info->d_name).find(_logName) == 0 &&
+                    stat(info->d_name, &fstat) == 0 &&
+                    S_ISREG(fstat.st_mode)) {
+                    _logList.emplace_back(_logPath + info->d_name);
+                }
+            }
+            closedir(dir);
+        }
+#endif
         resizeLog();
     }
 
     void resizeLog() {
         while (_maxNum <= _logList.size()) {
             remove(_logList.front().c_str());
-            std::cout << "delete " << _logList.front() << std::endl;
             _logList.pop_front();
         }
     }
