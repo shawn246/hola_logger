@@ -34,7 +34,7 @@ namespace hola {
 
 typedef enum
 {
-    LOG_FORCE,
+    LOG_FATAL,
     LOG_ERROR,
     LOG_WARNING,
     LOG_INFO,
