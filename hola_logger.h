@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <deque>
+#include <condition_variable>
 #if defined(WIN32) || defined(_WIN32)
 #include <io.h>
 #else
@@ -42,10 +43,10 @@ typedef enum
 } LogLevel;
 
 static const std::vector<std::string> s_logAbbr = { "[F]", "[E]", "[W]", "[I]", "[D]", "[T]" };
-static const std::vector<std::string> s_logName = { "Force", "Error", "Warning", "Info", "Debug", "Trace" };
+static const std::vector<std::string> s_logName = { "Fatal", "Error", "Warning", "Info", "Debug", "Trace" };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////                LogOne                  ////////////////////////////////////////////////
+////////////////////////////////////////////////               LogOne                ////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename _OutputStream>
@@ -179,6 +180,10 @@ public:
 
     virtual ~HolaLogger() {
         close();
+    }
+
+    bool isOpen() {
+        return _ofs.is_open();
     }
 
     void close() {
