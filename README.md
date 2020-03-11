@@ -1,5 +1,5 @@
 # hola_logger
-A simple log funciton implementation with one header file
+A simple log funciton implementation
 - Thread safe.
 - Use only << to logging
 - Support for limiting the size of sigle log file
